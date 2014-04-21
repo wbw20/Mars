@@ -1,2 +1,6 @@
+# OSX Stuff
 .DS_Store
+
+# Generated
+dist/
 
