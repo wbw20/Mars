@@ -2,6 +2,6 @@
 .DS_Store
 
 # Generated
-.class
+*.class
 dist/
 
