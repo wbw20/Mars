@@ -580,7 +580,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       /**
        *  Encapsulates a pixel in the display
        **/
-      private Class Pixel {
+      private class Pixel {
          int x;
          int y;
          Color color;
