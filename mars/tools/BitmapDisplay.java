@@ -491,19 +491,24 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           public void paint(Graphics g) {
                paintGrid(g, theGrid);
          }
-      
+
       	// Paint the color codes.
           private void paintGrid(Graphics g, Grid grid) {
             int upperLeftX = 0, upperLeftY = 0;
-            for (int i=0; i<grid.getRows(); i++) {
-               for (int j=0; j<grid.getColumns(); j++) {
-                  g.setColor(grid.getElementFast(i,j));
-                  g.fillRect(upperLeftX, upperLeftY, unitPixelWidth, unitPixelHeight); 
-                  upperLeftX += unitPixelWidth;   // faster than multiplying
-               }
-            	// get ready for next row...
-               upperLeftX = 0;
-               upperLeftY += unitPixelHeight;     // faster than multiplying
+            // for (int i=0; i<grid.getRows(); i++) {
+            //    for (int j=0; j<grid.getColumns(); j++) {
+            //       g.setColor(grid.getElementFast(i,j));
+            //       g.fillRect(upperLeftX, upperLeftY, unitPixelWidth, unitPixelHeight); 
+            //       upperLeftX += unitPixelWidth;   // faster than multiplying
+            //    }
+            // 	// get ready for next row...
+            //    upperLeftX = 0;
+            //    upperLeftY += unitPixelHeight;     // faster than multiplying
+            // }
+
+            for (Pixel pixel : grid.dirty) {
+               g.setColor(grid.getElementFast(pixel.x, pixel.y));
+               g.fillRect(pixel.x*unitPixelWidth, pixel.x*unitPixelHeight, unitPixelWidth, unitPixelHeight); 
             }
          }
       }
@@ -512,10 +517,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       ////////////////////////////////////////////////////////////////////////
    	// Represents grid of colors
        private class Grid {
-      
+         Set<Pixel> dirty = new HashSet<Pixel>(); // yet to be drawn
          Color[][] grid;
          int rows, columns;
-      	 		  
+
           private Grid(int rows, int columns) {
             grid = new Color[rows][columns];
             this.rows = rows;
@@ -545,12 +550,14 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       	      	
       	// Set the grid element.
           private void setElement(int row, int column, int color) {
-            grid[row][column] = new Color(color);
+            grid[row][column] = Color.RED;
+            dirty.add(new Pixel(row, column, new Color(color)));
          }
       	
       	// Set the grid element.
           private void setElement(int row, int column, Color color) {
-            grid[row][column] = color;
+            grid[row][column] = Color.RED;
+            dirty.add(new Pixel(row, column, color));
          }
       
       	// Just set all grid elements to black.
@@ -561,6 +568,27 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                }
             }
          }
-      }  	
-   
+
+         /**
+          *  Marks the this as being in sync with the JPanel
+          **/
+         public void clean() {
+            dirty.clear();
+         }
+      }
+
+      /**
+       *  Encapsulates a pixel in the display
+       **/
+      private Class Pixel {
+         int x;
+         int y;
+         Color color;
+
+         public Pixel(int x, int y, Color color) {
+            this.x = x;
+            this.y = y;
+            this.color = color;
+         }
+      }
    }
