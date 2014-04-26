@@ -498,15 +498,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
             System.out.println(dirty);
 
-            for (int i = dirty.x; i < dirty.x + dirty.width; i++) {
-               for (int j = dirty.y; j < dirty.y + dirty.height; j++) {
+            for (int i = dirty.x; i < dirty.x + dirty.width + 1; i++) {
+               for (int j = dirty.y; j < dirty.y + dirty.height + 1; j++) {
                   System.out.println("[" + i + ", " + j + "]");
                   g.setColor(grid.getElementFast(i,j));
                   g.fillRect(i*unitPixelWidth, j*unitPixelWidth, unitPixelWidth, unitPixelHeight); 
                }
             }
 
-            grid.clean();
+            // grid.clean();
          }
       }
    
@@ -548,13 +548,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       	      	
       	// Set the grid element.
           private void setElement(int row, int column, int color) {
-            setElement(row, column, Color.RED);
+            setElement(row, column, new Color(color));
          }
       	
       	// Set the grid element.
           private void setElement(int row, int column, Color color) {
-            grid[row][column] = Color.RED;
-            dirty.update(new Point(column, row));
+            grid[row][column] = color;
+            dirty.update(new Point(row, column));
          }
 
       	// Just set all grid elements to black.
