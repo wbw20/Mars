@@ -500,13 +500,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
             for (int i = dirty.x; i < dirty.x + dirty.width + 1; i++) {
                for (int j = dirty.y; j < dirty.y + dirty.height + 1; j++) {
-                  System.out.println("[" + i + ", " + j + "]");
                   g.setColor(grid.getElementFast(i,j));
                   g.fillRect(i*unitPixelWidth, j*unitPixelWidth, unitPixelWidth, unitPixelHeight); 
                }
             }
 
-            // grid.clean();
+            grid.clean();
          }
       }
    
@@ -554,6 +553,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       	// Set the grid element.
           private void setElement(int row, int column, Color color) {
             grid[row][column] = color;
+            // System.out.println("[" + row + ", " + column + "]");
             dirty.update(new Point(row, column));
          }
 
