@@ -218,7 +218,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    	 *  is running in timed mode.  Overrides inherited method that does nothing.
    	 */
        protected void updateDisplay() {
-         canvas.repaint();
+         System.out.println(theGrid.dirty());
+         canvas.repaint(theGrid.dirty());
       }
    
        
@@ -495,21 +496,18 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       	// Paint the color codes.
           private void paintGrid(Graphics g, Grid grid) {
             int upperLeftX = 0, upperLeftY = 0;
-            // for (int i=0; i<grid.getRows(); i++) {
-            //    for (int j=0; j<grid.getColumns(); j++) {
-            //       g.setColor(grid.getElementFast(i,j));
-            //       g.fillRect(upperLeftX, upperLeftY, unitPixelWidth, unitPixelHeight); 
-            //       upperLeftX += unitPixelWidth;   // faster than multiplying
-            //    }
-            // 	// get ready for next row...
-            //    upperLeftX = 0;
-            //    upperLeftY += unitPixelHeight;     // faster than multiplying
-            // }
-
-            for (Pixel pixel : grid.dirty) {
-               g.setColor(grid.getElementFast(pixel.x, pixel.y));
-               g.fillRect(pixel.x*unitPixelWidth, pixel.x*unitPixelHeight, unitPixelWidth, unitPixelHeight); 
+            for (int i=0; i<grid.getRows(); i++) {
+               for (int j=0; j<grid.getColumns(); j++) {
+                  g.setColor(grid.getElementFast(i,j));
+                  g.fillRect(upperLeftX, upperLeftY, unitPixelWidth, unitPixelHeight); 
+                  upperLeftX += unitPixelWidth;   // faster than multiplying
+               }
+            	// get ready for next row...
+               upperLeftX = 0;
+               upperLeftY += unitPixelHeight;     // faster than multiplying
             }
+
+            grid.clean();
          }
       }
    
@@ -517,7 +515,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       ////////////////////////////////////////////////////////////////////////
    	// Represents grid of colors
        private class Grid {
-         Set<Pixel> dirty = new HashSet<Pixel>(); // yet to be drawn
+         Dirty dirty;
          Color[][] grid;
          int rows, columns;
 
@@ -525,6 +523,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             grid = new Color[rows][columns];
             this.rows = rows;
             this.columns = columns;
+            this.dirty = new Dirty();
             reset();
          }
        
@@ -550,16 +549,15 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       	      	
       	// Set the grid element.
           private void setElement(int row, int column, int color) {
-            grid[row][column] = Color.RED;
-            dirty.add(new Pixel(row, column, new Color(color)));
+            setElement(row, column, Color.RED);
          }
       	
       	// Set the grid element.
           private void setElement(int row, int column, Color color) {
             grid[row][column] = Color.RED;
-            dirty.add(new Pixel(row, column, color));
+            dirty.update(new Pixel(column, row));
          }
-      
+
       	// Just set all grid elements to black.
           private void reset() {
             for (int i=0; i<rows; i++) {
@@ -573,22 +571,80 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           *  Marks the this as being in sync with the JPanel
           **/
          public void clean() {
-            dirty.clear();
+            dirty.clean();
+         }
+
+         /**
+          *  Publically expose uor dirty region
+          **/
+         public Rectangle dirty() {
+            return dirty.region();
          }
       }
 
       /**
-       *  Encapsulates a pixel in the display
+       *  Represents the dirty area of the screen
+       **/
+      private class Dirty {
+         Pixel topLeft;
+         Pixel bottomRight;
+
+         public void update(Pixel p) {
+            System.out.println(p);
+            if (topLeft == null) {
+               topLeft = new Pixel(p.x, p.y);
+            }
+
+            if (p.x < topLeft.x) {
+               topLeft.x = p.x;
+            }
+
+            if (p.y < topLeft.y) {
+               topLeft.y = p.y;
+            }
+
+            if (bottomRight == null) {
+               bottomRight = new Pixel(p.x, p.y);
+            }
+
+            if (p.x > bottomRight.x ) {
+               topLeft.x = p.x;
+            }
+
+            if (p.y > bottomRight.y) {
+               topLeft.y = p.y;
+            }
+         }
+
+         public void clean() {
+            topLeft = null;
+            bottomRight = null;
+            System.out.println("clean");
+         }
+
+         public Rectangle region() {
+            if (topLeft == null || bottomRight == null) {
+               return new Rectangle(0, 0, 0, 0);
+            }
+
+            return new Rectangle(topLeft.x, topLeft.y, topLeft.x - bottomRight.x + 1, topLeft.y - bottomRight.y + 1);
+         }
+      }
+
+      /**
+       *  Encapsulates a pixel location
        **/
       private class Pixel {
          int x;
          int y;
-         Color color;
 
-         public Pixel(int x, int y, Color color) {
+         public Pixel(int x, int y) {
             this.x = x;
             this.y = y;
-            this.color = color;
+         }
+
+         public String toString() {
+            return "(" + x + ", " + y + ")";
          }
       }
    }
