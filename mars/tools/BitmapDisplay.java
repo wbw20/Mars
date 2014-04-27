@@ -499,7 +499,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             synchronized(dirty) {
                for(Point point : dirty) {
                   g.setColor(grid.getElementFast(point.x, point.y));
-                  g.fillRect(point.x*unitPixelWidth, point.y*unitPixelWidth, unitPixelWidth, unitPixelHeight); 
+                  g.fillRect(point.y*unitPixelWidth, point.x*unitPixelWidth, unitPixelWidth, unitPixelHeight); 
                }
 
                grid.clean();
@@ -548,7 +548,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             setElement(row, column, new Color(color));
          }
       	
-      	// Set the grid element.
+      	// Set the grid element.`
           private void setElement(int row, int column, Color color) {
             grid[row][column] = color;
 
