@@ -218,7 +218,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    	 *  is running in timed mode.  Overrides inherited method that does nothing.
    	 */
        protected void updateDisplay() {
-         canvas.repaint(theGrid.dirty());
+         canvas.repaint();
       }
    
        
@@ -494,18 +494,16 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
       	// Paint the color codes.
           private void paintGrid(Graphics g, Grid grid) {
-            Rectangle dirty = grid.dirty();
+            Set<Point> dirty = grid.dirty();
 
-            System.out.println(dirty);
-
-            for (int i = dirty.x; i < dirty.x + dirty.width + 1; i++) {
-               for (int j = dirty.y; j < dirty.y + dirty.height + 1; j++) {
-                  g.setColor(grid.getElementFast(i,j));
-                  g.fillRect(i*unitPixelWidth, j*unitPixelWidth, unitPixelWidth, unitPixelHeight); 
+            synchronized(dirty) {
+               for(Point point : dirty) {
+                  g.setColor(grid.getElementFast(point.x, point.y));
+                  g.fillRect(point.x*unitPixelWidth, point.y*unitPixelWidth, unitPixelWidth, unitPixelHeight); 
                }
-            }
 
-            grid.clean();
+               grid.clean();
+            }
          }
       }
    
@@ -513,7 +511,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       ////////////////////////////////////////////////////////////////////////
    	// Represents grid of colors
        private class Grid {
-         Dirty dirty;
+         Set<Point> dirty;
          Color[][] grid;
          int rows, columns;
 
@@ -521,7 +519,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
             grid = new Color[rows][columns];
             this.rows = rows;
             this.columns = columns;
-            this.dirty = new Dirty();
+            this.dirty = new HashSet<Point>();
             reset();
          }
        
@@ -542,7 +540,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       	// Is faster than getElement but will throw array index out of bounds exception if
       	// parameter values are outside the bounds of the grid.			
           private Color getElementFast(int row, int column) {
-            return grid[row][column];			
+            return grid[row][column];
          }
       	      	
       	// Set the grid element.
@@ -553,8 +551,10 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
       	// Set the grid element.
           private void setElement(int row, int column, Color color) {
             grid[row][column] = color;
-            // System.out.println("[" + row + ", " + column + "]");
-            dirty.update(new Point(row, column));
+
+            synchronized(dirty) {
+               dirty.add(new Point(row, column));
+            }
          }
 
       	// Just set all grid elements to black.
@@ -570,42 +570,16 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
           *  Marks the this as being in sync with the JPanel
           **/
          public void clean() {
-            dirty.clean();
+            synchronized(dirty) {
+               dirty = new HashSet<Point>();
+            }
          }
 
          /**
           *  Publically expose uor dirty region
           **/
-         public Rectangle dirty() {
-            return dirty.region();
+         public Set<Point> dirty() {
+            return dirty;
          }
       }
-
-      /**
-       *  Represents the dirty area of the screen
-       **/
-      private class Dirty {
-         Rectangle region;
-
-         public void update(Point p) {
-            if (region == null) {
-               region = new Rectangle(p);
-            } else if(p != null) {
-               region.add(p);
-            }
-         }
-
-         public void clean() {
-            System.out.println("clean");
-            region = null;
-         }
-
-         public Rectangle region() {
-            if (region == null) {
-               return new Rectangle();
-            }
-
-            return region;
-         }
-      }
-   }
+}
